@@ -1,0 +1,6 @@
+
+/**
+ * \defgroup tools_module Tools Module
+ *
+ * Collection of various helper classes used internally in Grim library itself.
+ */

@@ -1,0 +1,25 @@
+
+/**
+ * \page page_prerequisites Prerequisites
+ *
+ * Grim build system is a CMake. Currently minimum required CMake version is 2.6.
+ *
+ * Grim itself uses Nokia/QtSoftware Qt 4 library, so Qt is a mandatory.
+ *
+ * Strong dependencies:
+ *
+ * \li <b>CMake 2.6</b>  - Build system (http://cmake.org).
+ * \li <b>Qt 4.5</b>     - Nokia/QtSoftware crossplatform toolkit (http://qtsoftware.com).
+ *
+ * Weak dependencies:
+ *
+ * \li <b>ZLib</b>       - All Qt destributions contains it, by default one from Qt will be
+ *                         used.
+ * \li <b>OpenAL 1.1</b> - 3D audio library (http://creative.com).
+ *                         For Linux users openal-soft implementation is recommended.
+ * \li <b>Ogg 1.1</b>    - Bit stream media library (http://xiph.org).
+ * \li <b>Vorbis 1.2</b> - Loosy audio codec (http://xiph.org).
+ *                         Both Ogg/Vorbis are needed for Audio Vorbis plugin.
+ * \li <b>FLAC 1.2</b>   - Free Looseless Audio Codec (http://xiph.org).
+ *                         Needed for Audio Flac plugin.
+ */

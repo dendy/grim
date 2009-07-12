@@ -1,0 +1,27 @@
+
+/**
+ * \mainpage Grim
+ *
+ * Grim is a Game engine.
+ * Unlike numerous game engines on market it not offers any graphical/audio
+ * solution. The core of the Grim is pure game itself.
+ *
+ * Grim is based solely on Nokia/QtSoftware Qt4 library.
+ *
+ * Grim supports all major desktop platforms, including:
+ *
+ * \li Linux/X11 (x86, x86_64 and ppc)
+ * \li Windows (XP, Vista) (32-bit and 64-bit)
+ * \li Mac OS X (Tiger, Leopard) (x86 and ppc)
+ *
+ * \copydoc page_modules
+ *
+ * \line
+ * \line
+ *
+ * See next sections for detailed description:
+
+ * \li \ref page_packageoverview
+ * \li \ref page_prerequisites
+ * \li \ref page_installation
+*/

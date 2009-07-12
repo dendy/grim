@@ -1,0 +1,12 @@
+<RCC>
+  <qresource>
+    <file>icons/playback-destroy.svg</file>
+    <file>icons/logo.png</file>
+    <file>icons/playback-loop.svg</file>
+    <file>icons/playback-pause.svg</file>
+    <file>icons/playback-play.svg</file>
+    <file>icons/playback-stop.svg</file>
+    <file>icons/archive-unmount.svg</file>
+    <file>icons/archive-mount.svg</file>
+  </qresource>
+</RCC>

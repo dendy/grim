@@ -1,1 +1,247 @@
-Still empty...
+
+  Grim - Game engine library
+  Copyright (C) 2009 Daniel Levin (dendy.ua@gmail.com)
+
+
+===============================================================================
+Contents
+-------------------------------------------------------------------------------
+
+- Introduction
+- Package overview
+- Prerequisites
+- Installation
+  - Linux
+  - Windows
+  - Mac OS
+- Probing
+- Notes
+
+
+===============================================================================
+Introduction
+-------------------------------------------------------------------------------
+
+Grim is a Game engine.
+Unlike numerous game engines on market it not offers any graphical/audio
+solution. The core of the Grim is pure game itself.
+
+Grim is based solely on Nokia/QtSoftware Qt4 library.
+
+Grim supports all major desktop platforms, including:
+  - Linux/X11 (x86, x86_64 and ppc)
+  - Windows (XP, Vista) (32-bit and 64-bit)
+  - Mac OS X (Tiger, Leopard) (x86 and ppc)
+
+Grim engine splitted by several libraries, that could be used independently.
+Currently it consists of:
+  - Archive - library for accessing archives via standard Qt file classes.
+  - Audio   - 3D positioning audio library and set of codecs for rapidly add
+              audio support to any Qt aplication.
+              Audio module is not a part of Grim Game module.
+              It is provided as separate solution for application, in hope it
+              will be useful.
+
+
+===============================================================================
+Package overview
+-------------------------------------------------------------------------------
+
+Brief description of package layout in alphabet order:
+
+  cmake        - CMake project files for whole library.
+                 Particular module project files are inside subdirectories.
+  demo         - Demonstration application of main capabilities.
+  doc          - Documentation.
+  examples     - Small examples how to use various futures of Grim.
+                 Recommended for new developers.
+  include      - Headers for Grim library. Useful when one wants to skip
+                 install step and use Grim directly from package.
+  src          - Grim sources for all modules.
+  translations - Translation files on different languages.
+
+
+===============================================================================
+Prerequisites
+-------------------------------------------------------------------------------
+
+Grim build system is a CMake. Currently minimum required CMake version is 2.6.
+Grim itself uses Nokia/QtSoftware Qt 4 library, so Qt is a mandatory.
+
+Strong dependencies:
+  CMake 2.6  - Build system (http://cmake.org).
+  Qt 4.5     - Nokia/QtSoftware crossplatform toolkit (http://qtsoftware.com).
+
+Weak dependencies:
+  ZLib       - All Qt destributions contains it, by default one from Qt will be
+               used.
+  OpenAL 1.1 - 3D audio library (http://creative.com).
+               For Linux users openal-soft implementation is recommended.
+  Ogg 1.1    - Bit stream media library (http://xiph.org).
+  Vorbis 1.2 - Loosy audio codec (http://xiph.org).
+               Both Ogg/Vorbis are needed for Audio Vorbis plugin.
+  FLAC       - Free Looseless Audio Codec (http://xiph.org).
+               Needed for Audio Flac plugin.
+
+
+===============================================================================
+Installation
+-------------------------------------------------------------------------------
+
+Installation in similar for all platforms thanks to CMake.
+Main differences in prerequisites installation.
+
+Under Linux the normally only you have to do is install development packets
+for prerequisites and CMake will find them automatically from standard paths.
+
+Under Windows after installing prerequisites you usually have to set environment
+variables.
+
+-------------------------------------------------------------------------------
+CMake
+
+Path to CMake executable should be in your PATH environment variable.
+Otherwise you have to run in with absolute path to executable.
+
+-------------------------------------------------------------------------------
+Qt
+
+Under Windows Qt installation normally detected via QTDIR envoronment variable,
+which points to the root directory of Qt package.
+
+If one have different versions of Qt and wants to omit QTDIR setup - CMake
+offers special variable at configuration time, which should points to Qt qmake
+executable. The rest library will be found automatically:
+
+  QT_QMAKE_EXECUTABLE
+
+-------------------------------------------------------------------------------
+OpenAL, Ogg, Vorbis and FLAC
+
+Additionally to CMake package search argorithm next environment variables can
+be specified:
+
+  OPENALDIR    - Root directory of OpenAL library.
+  OGGDIR       - Root directory of Ogg library.
+  VORBISDIR    - Root directory of Vorbis library.
+  FLACDIR      - Root directory of FLAC library.
+
+If you omit thease environment variables you can still select root directories
+of each library (or even paths to separate component of each library) at
+CMake configuration time. Respectively CMake variables are:
+
+  OPENAL_ROOT_DIR
+  OGG_ROOT_DIR
+  VORBIS_ROOT_DIR
+  FLAC_ROOT_DIR
+
+Additionally thin tuning can be done be specifying *_INCLUDE_DIR and *_LIBRARY
+CMake variables for particular libraries.
+
+-------------------------------------------------------------------------------
+Grim
+
+Next step-by-step tutorial assumes normal Unix shell environment.
+On Windows platform the same should be done using cmd.exe application.
+
+---------------------------------------
+1. Unpack Grim package:
+
+$ tar -zxf /path/to/grim-1.2.3.tar.gz
+
+---------------------------------------
+2. Create directory where your Grim configuration will be built:
+
+$ mkdir -p /path/to/grim/build && cd /path/to/grim/build
+
+---------------------------------------
+3. Run CMake build system:
+
+$ cmake /path/to/grim-1.2.3/cmake
+
+Or use GUI application provided with CMake: cmake-gui. This way is recommended.
+Path to source code should point to cmake/ directory under the grim root
+directory. Path where to build binaries should point to your already created
+build directory at step 2. Then press "Configure" button.
+
+---------------------------------------
+4. Configure your build.
+
+Common options are:
+
+  CMAKE_INSTALL_PREFIX           - Where Grim will be installed.
+                                   Under Linux this is usually /usr/local
+                                   Under Windows this is usually
+                                   C:\Program Files\Grim
+                                   Set what best suits for you or leave as is
+                                   if you want to skip installation step.
+
+  CMAKE_BUILD_TYPE               - Build type. Possible values are:
+                                   Debug/Release/RelWithDebInfo/MinSizeRelease
+
+  GRIM_BUILD_MODULE_ARCHIVE      - Enable Grim Archive module building.
+  GRIM_BUILD_MODULE_AUDIO        - Enable Grim Audio module building.
+  GRIM_BUILD_MODULE_TOOLS        - Enable Grim Tools module building.
+
+  GRIM_AUDIO_BUILD_PLUGIN_WAVE   - Enable Wave format support for Grim Audio.
+  GRIM_AUDIO_BUILD_PLUGIN_VORBIS - Enable Ogg/Vorbis format support for Grim
+                                   Audio.
+  GRIM_AUDIO_BUILD_PLUGIN_FLAC   - Enable FLAC format support for Grim Audio.
+
+  GRIM_BUILD_EXAMPLES            - Build examples.
+  GRIM_BUILD_DEMO                - Build demo application. It depends on both
+                                   Archive and Audio modules.
+
+Carefully read error messages if you have ones.
+Note that some CMake variables can be under the Advanced View.
+After fixing errors depending on your way to configure build either rerun cmake
+or press "Configure" button again. Do this until all errors will not gone.
+
+Possible errors at configuration time are:
+  - Qt not found      - Specify QT_QMAKE_EXECUTABLE as described upper.
+  - OpenAL not found  - Specify OPENAL_ROOT_DIR as desrcibed upper.
+                        Or disable GRIM_BUILD_MODULE_AUDIO.
+  - Ogg not found     - Specify OGG_ROOT_DIR as described upper.
+                        Or disable GRIM_AUDIO_BUILD_PLUGIN_VORBIS.
+  - Vorbis not found  - Specify VORBIS_ROOT_DIR as described upper.
+                        Or disable GRIM_AUDIO_BUILD_PLUGIN_VORBIS.
+  - FLAC not found    - Specify FLAC_ROOT_DIR as describer upper.
+                        Or disable GRIM_AUDIO_BUILD_PLUGIN_FLAC.
+
+If you inside cmake-gui application press "Generate" button to generate project
+files for your build. If you using command line - this step is alredy done for
+you automatically.
+
+---------------------------------------
+5. Build.
+
+$ make
+
+This command will place Grim libraries inside ./lib directory and executables
+into ./bin directory under the current build directory.
+
+---------------------------------------
+6. Install (optional).
+
+$ make install
+
+This will install Grim development library under the selected prefix.
+Installation prefix can be changed at configuration time with CMake variable
+CMAKE_INSTALL_PREFIX.
+
+Regardless of have you selected to build demo application and/or examples -
+they will not be installed. Only development files will be.
+
+---------------------------------------
+7. Run.
+
+If you selected to build Demo application or examples - you can run them with:
+
+$ ./bin/GrimDemo
+$ ./bin/GrimTrivialAudio
+$ ./bin/GrimTrivialArchive
+
+
+===============================================================================
+Notes
+-------------------------------------------------------------------------------

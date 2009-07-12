@@ -1,0 +1,11 @@
+
+/**
+ * \page page_modules Grim modules
+ *
+ * Grim engine splitted by several libraries, that could be used independently.
+ * Currently it consists of next modules:
+ *
+ * \li \ref archive_module "Archive"
+ * \li \ref audio_module "Audio"
+ * \li \ref tools_module "Tools"
+ */

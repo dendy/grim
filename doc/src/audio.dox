@@ -1,0 +1,8 @@
+
+/**
+ * \defgroup audio_module Audio module
+ *
+ * 3D positioning audio library and set of codecs for rapidly add audio support to any Qt aplication.
+ * Audio module is not a part of Grim Game module.
+ * It is provided as separate solution for application, in hope it will be useful.
+ */

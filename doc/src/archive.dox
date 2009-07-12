@@ -1,0 +1,9 @@
+
+/**
+ * \defgroup archive_module Archive module
+ *
+ * Archive module provides extremely easy and portable way to access archives.
+ *
+ * Archives can be mounted with a single call and the they are visible like
+ * normal directories to work with them via standard Qt classes, like QDir, QFile, QFileInfo and QDirIterator.
+ */

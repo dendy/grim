@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>481</width>
+    <height>92</height>
+   </rect>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>481</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAboutQt"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <addaction name="actionSingleLayoutMode"/>
+    <addaction name="actionSeparateLayoutMode"/>
+   </widget>
+   <widget class="QMenu" name="menuPlayer">
+    <property name="title">
+     <string>&amp;Player</string>
+    </property>
+    <addaction name="actionCreatePlayer"/>
+    <addaction name="actionRecreatePlayer"/>
+    <addaction name="actionDestroyPlayer"/>
+    <addaction name="actionShowPlayer"/>
+    <addaction name="separator"/>
+    <addaction name="actionSourcePlay"/>
+    <addaction name="actionSourcePause"/>
+    <addaction name="actionSourceStop"/>
+    <addaction name="actionSourceLoop"/>
+   </widget>
+   <widget class="QMenu" name="menuArchive">
+    <property name="title">
+     <string>&amp;Archive</string>
+    </property>
+    <addaction name="actionMountArchive"/>
+    <addaction name="actionUnmountArchive"/>
+    <addaction name="actionUnmountAllArchives"/>
+   </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>&amp;Window</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>&amp;Settings</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
+   <addaction name="menuArchive"/>
+   <addaction name="menuPlayer"/>
+   <addaction name="menuWindow"/>
+   <addaction name="menuSettings"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionQuit">
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionSingleLayoutMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Single View</string>
+   </property>
+  </action>
+  <action name="actionSeparateLayoutMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Separate Windows</string>
+   </property>
+  </action>
+  <action name="actionMountArchive">
+   <property name="icon">
+    <iconset resource="../res/res.qrc">
+     <normaloff>:/icons/archive-mount.svg</normaloff>:/icons/archive-mount.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Mount</string>
+   </property>
+   <property name="toolTip">
+    <string>Mount archive to file system</string>
+   </property>
+  </action>
+  <action name="actionUnmountArchive">
+   <property name="icon">
+    <iconset resource="../res/res.qrc">
+     <normaloff>:/icons/archive-unmount.svg</normaloff>:/icons/archive-unmount.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Unmount</string>
+   </property>
+   <property name="toolTip">
+    <string>Unmount archive from file system</string>
+   </property>
+  </action>
+  <action name="actionCreatePlayer">
+   <property name="text">
+    <string>Create Player</string>
+   </property>
+  </action>
+  <action name="actionDestroyPlayer">
+   <property name="text">
+    <string>Destroy Player</string>
+   </property>
+  </action>
+  <action name="actionSourcePlay">
+   <property name="icon">
+    <iconset resource="../res/res.qrc">
+     <normaloff>:/icons/playback-play.svg</normaloff>:/icons/playback-play.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Play</string>
+   </property>
+  </action>
+  <action name="actionSourcePause">
+   <property name="icon">
+    <iconset resource="../res/res.qrc">
+     <normaloff>:/icons/playback-pause.svg</normaloff>:/icons/playback-pause.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Pause</string>
+   </property>
+  </action>
+  <action name="actionSourceStop">
+   <property name="icon">
+    <iconset resource="../res/res.qrc">
+     <normaloff>:/icons/playback-stop.svg</normaloff>:/icons/playback-stop.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionSourceLoop">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../res/res.qrc">
+     <normaloff>:/icons/playback-loop.svg</normaloff>:/icons/playback-loop.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Loop</string>
+   </property>
+  </action>
+  <action name="actionRecreatePlayer">
+   <property name="text">
+    <string>Recreate Player</string>
+   </property>
+  </action>
+  <action name="actionShowPlayer">
+   <property name="text">
+    <string>Show Player</string>
+   </property>
+  </action>
+  <action name="actionUnmountAllArchives">
+   <property name="text">
+    <string>Unmount All</string>
+   </property>
+  </action>
+  <action name="actionAboutQt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../res/res.qrc"/>
+ </resources>
+ <connections/>
+</ui>
