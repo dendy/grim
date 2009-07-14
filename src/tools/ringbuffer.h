@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * The GNU General Public License is contained in the file LICENSE.GPL3 in the
+ * The GNU General Public License is contained in the file COPYING in the
  * packaging of this file. Please review information in this file to ensure
  * the GNU General Public License version 3.0 requirements will be met.
  *
@@ -46,22 +46,23 @@ class GRIM_TOOLS_EXPORT RingBuffer : public QIODevice
 	Q_OBJECT
 
 public:
-	RingBuffer();
+	RingBuffer( QObject * parent = 0 );
 	~RingBuffer();
 
+	void push( const char * data, int size );
+	void push( const QByteArray & data );
+	void pop( int size );
+	void clear();
+
+	// reimplemented from QIODevice
 	bool open( QIODevice::OpenMode openMode );
 
 	bool isSequential() const;
-
 	bool atEnd() const;
 	qint64 bytesAvailable() const;
 	qint64 size() const;
 
 	bool seek( qint64 pos );
-
-	void push( const char * data, int size );
-	void pop( int size );
-	void clear();
 
 protected:
 	qint64 readData( char * data, qint64 maxLen );

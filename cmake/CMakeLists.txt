@@ -33,9 +33,9 @@ set( BUILD_SHARED_LIBS 1 )
 set( CMAKE_STATIC_LIBRARY_PREFIX "lib" )
 set( CMAKE_SHARED_LIBRARY_PREFIX "lib" )
 
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" )
-set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
-set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin" )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib" )
 
 
 # global options
@@ -73,7 +73,8 @@ endmacro ( grim_add_precompiled_headers_wrapper )
 #   GRIM_LIBRARIES
 
 get_filename_component( GRIM_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE )
-set( GRIM_INCLUDE_DIR "${GRIM_ROOT_DIR}/include" CACHE PATH "Root directory of Grim library" FORCE )
+set( GRIM_ROOT_DIR "${GRIM_ROOT_DIR}" CACHE PATH "Root directory of Grim library" )
+set( GRIM_INCLUDE_DIR "${GRIM_ROOT_DIR}/include" CACHE PATH "Path to Grim include directory" FORCE )
 set( GRIM_GAME_LIBRARY    "" CACHE FILEPATH "Path to GrimGame library"    FORCE )
 set( GRIM_ARCHIVE_LIBRARY "" CACHE FILEPATH "Path to GrimArchive library" FORCE )
 set( GRIM_AUDIO_LIBRARY   "" CACHE FILEPATH "Path to GrimAudio library"   FORCE )
@@ -142,7 +143,6 @@ endif ( GRIM_BUILD_MODULE_TOOLS )
 # and push all Grim variables upper to parent scope
 # so Grim developers can skip find_package( Grim ) step
 # in theirs test projects
-
 set( GRIM_LIBRARIES )
 
 foreach( _grim_module ${_grim_modules} )

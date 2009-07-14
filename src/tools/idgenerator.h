@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * The GNU General Public License is contained in the file LICENSE.GPL3 in the
+ * The GNU General Public License is contained in the file COPYING in the
  * packaging of this file. Please review information in this file to ensure
  * the GNU General Public License version 3.0 requirements will be met.
  *

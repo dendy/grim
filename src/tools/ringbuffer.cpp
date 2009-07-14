@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * The GNU General Public License is contained in the file LICENSE.GPL3 in the
+ * The GNU General Public License is contained in the file COPYING in the
  * packaging of this file. Please review information in this file to ensure
  * the GNU General Public License version 3.0 requirements will be met.
  *
@@ -45,10 +45,12 @@ public:
 	bool seek( qint64 pos );
 
 	qint64 readData( char * data, qint64 maxLen );
+	qint64 writeData( const char * data, qint64 maxLen );
 
 	void appendBuffer( qint64 size );
 
 	void push( const char * data, int size );
+	void push( const QByteArray & data );
 	void pop( int size );
 	void clear();
 
@@ -161,6 +163,13 @@ qint64 RingBufferPrivate::readData( char * data, qint64 maxLen )
 }
 
 
+qint64 RingBufferPrivate::writeData( const char * data, qint64 maxLen )
+{
+	push( data, maxLen );
+	return maxLen;
+}
+
+
 void RingBufferPrivate::appendBuffer( qint64 size )
 {
 	QByteArray buffer;
@@ -171,8 +180,6 @@ void RingBufferPrivate::appendBuffer( qint64 size )
 
 void RingBufferPrivate::push( const char * data, int size )
 {
-	Q_ASSERT( !ringBuffer_->isOpen() );
-
 	Q_ASSERT( size >= 0 );
 
 	if ( size == 0 )
@@ -209,10 +216,19 @@ void RingBufferPrivate::push( const char * data, int size )
 }
 
 
+void RingBufferPrivate::push( const QByteArray & data )
+{
+	if ( data.size() == 0 )
+		return;
+
+	ring_ << data;
+
+	size_ += data.size();
+}
+
+
 void RingBufferPrivate::pop( int size )
 {
-	Q_ASSERT( !ringBuffer_->isOpen() );
-
 	Q_ASSERT( size <= size_ );
 
 	int remains = size;
@@ -254,11 +270,83 @@ void RingBufferPrivate::clear()
 
 
 
-RingBuffer::RingBuffer() :
+/**
+ * \class RingBuffer
+ *
+ * \brief The RingBuffer class represents FIFO buffer with QIODevice interface.
+ *
+ * Ring buffer is handy, when you have sequential FIFO stream and should collect
+ * bytes from it until solid block of useful data to extract will arrive.
+ *
+ * Such typical stream is a TCP socket, that gives you bytes portion by portion
+ * and you can't know when transmitted solid packet will arrive until you parse it fully.
+ *
+ * In this case you can simply put received bytes into ring buffer and try to extract something from it.
+ * If packet still is not solid - wait for more bytes, append it to ring buffer and try again.
+ *
+ * RingBuffer cares about memory allocation, and never rearranges internal data chunks while reading
+ * data by small pieces.
+ *
+ * Example of typical usage:
+ *
+ * \code
+ * void MyNetworkHandler::readyRead()
+ * {
+ *     // appending all received bytes
+ *     ringBuffer_.push( tcpSocket_->readAll() );
+ *
+ *     // opening buffer for reading
+ *     ringBuffer_.open( QIODevice::ReadOnly );
+ *     QDataStream stream( &ringBuffer_ );
+ *
+ *     // for example we are waiting a solid block of 'int', followed by 'QString'
+ *     int myInt;
+ *     QString myString;
+ *     stream >> myInt;
+ *     stream >> myString;
+ *
+ *     // check if our block is solid
+ *     if ( stream.status() == QDataStream::ReadPastEnd )
+ *     {
+ *         // not enough bytes in the stream, will wait for the next readyRead() call
+ *         ringBuffer_.close();
+ *         return;
+ *     }
+ *
+ *     // check that our block encountered error, because of received junk from the network
+ *     if ( stream.status() == QDataStream::ReadCorruptedData )
+ *     {
+ *         ringBuffer_.close();
+ *         tcpSocket_->close();
+ *         return;
+ *     }
+ *
+ *     // here myInt and myString variables are valid, we can process them
+ *     qDebug() << "Received from network:" << myInt << myString;
+ *
+ *     // and remove handled bytes from ring buffer
+ *     const qint64 wellReadPos = ringBuffer.pos();
+ *     ringBuffer_.close();
+ *     ringBuffer_.pop( wellReadPos );
+ * }
+ * \endcode
+ */
+
+
+/**
+ * Constructs empty ring buffer.
+ * \a parent is passed to the QObject constructor.
+ */
+
+RingBuffer::RingBuffer( QObject * parent ) :
 	d_( new RingBufferPrivate( this ) )
 {
 }
 
+
+/**
+ * Destroys the ring buffer.
+ */
 
 RingBuffer::~RingBuffer()
 {
@@ -266,15 +354,91 @@ RingBuffer::~RingBuffer()
 }
 
 
+/**
+ * Appends the given \a data bytes of the \a size to the buffer.
+ * Note that buffer must be closed.
+ *
+ * \sa pop()
+ */
+
+void RingBuffer::push( const char * data, int size )
+{
+	Q_ASSERT( !isOpen() );
+
+	d_->push( data, size );
+}
+
+
+/**
+ * \overload
+ *
+ * Appends the given \a data byte array to the buffer.
+ * Note that buffer must be closed.
+ *
+ * \sa pop()
+ */
+
+void RingBuffer::push( const QByteArray & data )
+{
+	Q_ASSERT( !isOpen() );
+
+	d_->push( data );
+}
+
+
+/**
+ * Removes \a size bytes from the start of the buffer.
+ * Note that buffer must be closed.
+ *
+ * \sa push()
+ */
+
+void RingBuffer::pop( int size )
+{
+	Q_ASSERT( !isOpen() );
+
+	d_->pop( size );
+}
+
+
+/**
+ * Clears the buffer. Equivalent of pop( size() ).
+ * Note that buffer must be closed.
+ */
+
+void RingBuffer::clear()
+{
+	Q_ASSERT( !isOpen() );
+
+	d_->clear();
+}
+
+
+/** \internal
+ */
+
 bool RingBuffer::open( QIODevice::OpenMode openMode )
 {
-	Q_ASSERT( openMode == QIODevice::ReadOnly );
-
-	d_->seek( 0 );
+	if ( openMode == QIODevice::ReadOnly )
+	{
+		d_->seek( 0 );
+	}
+	else if ( openMode & QIODevice::WriteOnly && openMode & QIODevice::Append )
+	{
+	}
+	else
+	{
+		Q_ASSERT_X( false,
+			"Grim::RingBuffer::open()",
+			"Only (ReadOnly) and (WriteOnly|Append) modes are allowed." );
+	}
 
 	return QIODevice::open( openMode );
 }
 
+
+/** \internal
+ */
 
 bool RingBuffer::isSequential() const
 {
@@ -282,11 +446,17 @@ bool RingBuffer::isSequential() const
 }
 
 
+/** \internal
+ */
+
 bool RingBuffer::atEnd() const
 {
 	return d_->pos_ == d_->size_;
 }
 
+
+/** \internal
+ */
 
 qint64 RingBuffer::bytesAvailable() const
 {
@@ -294,11 +464,17 @@ qint64 RingBuffer::bytesAvailable() const
 }
 
 
+/** \internal
+ */
+
 qint64 RingBuffer::size() const
 {
 	return d_->size_;
 }
 
+
+/** \internal
+ */
 
 bool RingBuffer::seek( qint64 pos )
 {
@@ -307,33 +483,21 @@ bool RingBuffer::seek( qint64 pos )
 }
 
 
+/** \internal
+ */
+
 qint64 RingBuffer::readData( char * data, qint64 maxLen )
 {
 	return d_->readData( data, maxLen );
 }
 
 
+/** \internal
+ */
+
 qint64 RingBuffer::writeData( const char * data, qint64 maxLen )
 {
-	return -1;
-}
-
-
-void RingBuffer::push( const char * data, int size )
-{
-	d_->push( data, size );
-}
-
-
-void RingBuffer::pop( int size )
-{
-	d_->pop( size );
-}
-
-
-void RingBuffer::clear()
-{
-	d_->clear();
+	return d_->writeData( data, maxLen );
 }
 
 
