@@ -24,6 +24,8 @@
 
 #include "idgenerator.h"
 
+#include <QVector>
+
 
 
 
@@ -32,23 +34,25 @@ namespace Grim {
 
 
 
-static const int DefaultSize = 1024;
+static const int DefaultEnlargeSize = 1024;
 
 
 
 
-class IdGeneratorPrivate
+class IdGeneratorPrivate : public QSharedData
 {
 public:
-	IdGeneratorPrivate( int size );
+	IdGeneratorPrivate( int limit );
 
 	int take();
 	void free( int id );
 	void reserve( int id );
+	bool isFree( int id ) const;
 
 private:
-	void _init( int size );
-	void _enlarge( int size );
+	void _init( int limit );
+	struct Id;
+	void _makeIdTaken( int id, Id * idp );
 
 private:
 	struct Id
@@ -58,11 +62,12 @@ private:
 		bool isFree;
 	};
 
-	bool isAutoEnlarge_;
+	int limit_;
 	int first_;
 	int last_;
+	int firstTaken_;
+	int lastTaken_;
 	int freeCount_;
-	int size_;
 	QVector<Id> ids_;
 
 	friend class IdGenerator;
@@ -73,83 +78,45 @@ private:
 
 
 
-inline IdGeneratorPrivate::IdGeneratorPrivate( int size ) :
-	isAutoEnlarge_( true )
-{
-	_init( size );
-}
-
-
 /** \internal
  * Initializes a generator with the given \a size of table of identifiers.
  */
 
-inline void IdGeneratorPrivate::_init( int size )
+inline IdGeneratorPrivate::IdGeneratorPrivate( int limit ) :
+	limit_( limit )
 {
-	// size == 0 not allowed
-	Q_ASSERT( size == -1 || size > 0 );
+	Q_ASSERT( limit_ >= -1 );
 
-	size_ = size == -1 ? DefaultSize : size;
+	freeCount_ = 0;
+	first_ = 0;
+	last_ = 0;
 
-	// if size == 1 then first and last is not available until
-	// generator will not be enlarged
-	freeCount_ = size_ - 1;
-	first_ = size_ == 1 ? 0 : 1;
-	last_ = size_ == 1 ? 0 : size_ - 1;
+	firstTaken_ = 0;
+	lastTaken_ = 0;
 
-	ids_.resize( size_ );
-	Id * idp = ids_.data();
-	for ( int i = 1; i < size_; ++i )
-	{
-		idp[i].previous = i-1;
-		idp[i].next = i+1;
-		idp[i].isFree = true;
-	}
-	idp[0].previous = 0;
-	idp[size_-1].next = 0;
+	ids_.reserve( limit == -1 ? DefaultEnlargeSize : qMin( limit + 1, DefaultEnlargeSize ) );
+	ids_.resize( 1 );
+	ids_[ 0 ].previous = 0;
+	ids_[ 0 ].next = 0;
 }
 
 
-/** \internal
- * Enlarges table of identifiers by \a size.
- */
-
-inline void IdGeneratorPrivate::_enlarge( int size )
+inline void IdGeneratorPrivate::_makeIdTaken( int id, Id * idp )
 {
-	Q_ASSERT( size > 0 );
+	Id & currentId = idp[ id ];
 
-	const int newSize = size_ + size;
+	currentId.isFree = false;
 
-	QVector<Id> newIds;
-	newIds.resize( newSize );
-	memcpy( newIds.data(), ids_.constData(), size_*sizeof(Id) );
-
-	Id * idp = newIds.data();
-	for ( int i = size_; i < newSize; ++i )
+	currentId.previous = lastTaken_;
+	if ( lastTaken_ != 0 )
 	{
-		idp[i].previous = i - 1;
-		idp[i].next = i + 1;
-		idp[i].isFree = true;
-	}
-
-	// link new ids with previous ids
-	if ( freeCount_ > 0 )
-	{
-		idp[size_].previous = last_;
-		idp[last_].next = size_;
+		idp[ lastTaken_ ].next = id;
 	}
 	else
 	{
-		// no free ids left, mark first id from new ones as first free
-		idp[size_].previous = 0;
-		first_ = size_;
+		firstTaken_ = lastTaken_ = id;
 	}
-	last_ = newSize - 1;
-	idp[last_].next = 0;
-
-	freeCount_ += size;
-	ids_ = newIds;
-	size_ = newSize;
+	currentId.next = 0;
 }
 
 
@@ -158,42 +125,63 @@ inline void IdGeneratorPrivate::_enlarge( int size )
 
 inline int IdGeneratorPrivate::take()
 {
+	int id = 0;
+	Id * idp = 0;
+
 	if ( freeCount_ == 0 )
 	{
-		if ( !isAutoEnlarge_ )
+		Q_ASSERT( first_ == 0 );
+		Q_ASSERT( last_ == 0 );
+
+		id = ids_.size();
+
+		if ( limit_ != -1 && id == limit_ + 1 )
 		{
 			// no free ids left
 			return 0;
 		}
-		_enlarge( DefaultSize );
-	}
 
-	freeCount_--;
+		if ( id >= ids_.capacity() )
+			ids_.reserve( limit_ == -1 ? id + DefaultEnlargeSize : qMin( limit_ + 1, ids_.capacity() + DefaultEnlargeSize ) );
 
-	Id * idp = ids_.data();
+		ids_.resize( id + 1 );
 
-	// take free id from start
-	const int id = first_;
-	Q_ASSERT( id != 0 );
-
-	Id & currentId = idp[ id ];
-	Q_ASSERT( currentId.isFree );
-	currentId.isFree = false;
-
-	first_ = currentId.next;
-	if ( first_ != 0 )
-	{
-		Q_ASSERT( freeCount_ > 0 );
-		Q_ASSERT( id != last_ );
-		Id & firstId = idp[ first_ ];
-		firstId.previous = 0;
+		idp = ids_.data();
 	}
 	else
 	{
-		Q_ASSERT( freeCount_ == 0 );
-		Q_ASSERT( id == last_ );
-		last_ = 0;
+		Q_ASSERT( first_ != 0 );
+		Q_ASSERT( last_ != 0 );
+
+		freeCount_--;
+
+		idp = ids_.data();
+
+		// take free id from start
+		id = first_;
+
+		Id & currentId = idp[ id ];
+		Q_ASSERT( currentId.isFree );
+
+		first_ = currentId.next;
+		if ( first_ != 0 )
+		{
+			Q_ASSERT( freeCount_ > 0 );
+			Q_ASSERT( id != last_ );
+
+			Id & firstId = idp[ first_ ];
+			firstId.previous = 0;
+		}
+		else
+		{
+			Q_ASSERT( freeCount_ == 0 );
+			Q_ASSERT( id == last_ );
+
+			last_ = 0;
+		}
 	}
+
+	_makeIdTaken( id, idp );
 
 	return id;
 }
@@ -204,7 +192,7 @@ inline int IdGeneratorPrivate::take()
 
 inline void IdGeneratorPrivate::free( int id )
 {
-	Q_ASSERT( id > 0 && id < size_ );
+	Q_ASSERT( id > 0 && id < ids_.size() );
 
 	Id * idp = ids_.data();
 
@@ -212,22 +200,31 @@ inline void IdGeneratorPrivate::free( int id )
 	Q_ASSERT( !currentId.isFree );
 	currentId.isFree = true;
 
-	// put free id to end
-	if ( last_ != 0 )
+	if ( currentId.previous )
+		idp[ currentId.previous ].next = currentId.next;
+	if ( currentId.next )
+		idp[ currentId.next ].previous = currentId.previous;
+	if ( id == firstTaken_ )
+		firstTaken_ = currentId.next;
+	if ( id == lastTaken_ )
+		lastTaken_ = currentId.previous;
+
+	// put free id to begin
+	if ( first_ != 0 )
 	{
 		Q_ASSERT( freeCount_ != 0 );
-		Q_ASSERT( first_ != 0 );
+		Q_ASSERT( last_ != 0 );
 
-		Id & lastId = idp[ last_ ];
-		lastId.next = id;
-		currentId.previous = last_;
-		currentId.next = 0;
-		last_ = id;
+		Id & firstId = idp[ first_ ];
+		firstId.previous = id;
+		currentId.next = first_;
+		currentId.previous = 0;
+		first_ = id;
 	}
 	else
 	{
 		Q_ASSERT( freeCount_ == 0 );
-		Q_ASSERT( first_ == 0 );
+		Q_ASSERT( last_ == 0 );
 
 		currentId.previous = 0;
 		currentId.next = 0;
@@ -245,31 +242,58 @@ inline void IdGeneratorPrivate::free( int id )
 inline void IdGeneratorPrivate::reserve( int id )
 {
 	Q_ASSERT( id > 0 );
+	Q_ASSERT( limit_ == -1 || id <= limit_ );
 
-	if ( id >= size_ )
+	Id * idp = 0;
+
+	if ( id >= ids_.size() )
 	{
-		Q_ASSERT_X( isAutoEnlarge_,
-			"Grim::IdGeneratorPrivate::reserve()",
-			"Attempt to reserve identifier that is out of allowed bounds." );
+		if ( id >= ids_.capacity() )
+			ids_.reserve( limit_ == -1 ? id + DefaultEnlargeSize : qMin( limit_ + 1, ids_.capacity() + DefaultEnlargeSize ) );
 
-		_enlarge( size_ - id + 1 + DefaultSize );
+		const int firstId = ids_.size();
+		ids_.resize( id + 1 );
+
+		idp = ids_.data();
+		for ( int i = firstId; i <= id; ++i )
+		{
+			idp[ i ].isFree = true;
+			idp[ i ].previous = i - 1;
+			idp[ i ].next = i + 1;
+		}
+
+		// link first new id with the last previous
+		idp[ firstId ].previous = last_;
+		if ( last_ != 0 )
+		{
+			idp[ last_ ].next = firstId;
+		}
+		else
+		{
+			first_ = firstId;
+		}
+
+		last_ = id;
+		idp[ last_ ].next = 0;
+
+		freeCount_ += id + 1 - firstId;
 	}
 
 	freeCount_--;
 
-	Id * idp = ids_.data();
+	if ( !idp )
+		idp = ids_.data();
 
 	Id & currentId = idp[ id ];
 	Q_ASSERT_X( currentId.isFree,
 		"Grim::IdGeneratorPrivate::reserve()",
-		"Attempt to reserve alreade taken id." );
-	currentId.isFree = false;
+		"Attempt to reserve already taken id." );
 
-	Id & previousId = idp[ currentId.previous ];
-	previousId.next = 0;
+	if ( currentId.previous != 0 )
+		idp[ currentId.previous ].next = currentId.next;
 
-	Id & nextId = idp[ currentId.next ];
-	nextId.previous = 0;
+	if ( currentId.next != 0 )
+		idp[ currentId.next ].previous = currentId.previous;
 
 	if ( id == first_ )
 		first_ = currentId.next;
@@ -277,7 +301,26 @@ inline void IdGeneratorPrivate::reserve( int id )
 	if ( id == last_ )
 		last_ = currentId.previous;
 
-	Q_ASSERT( freeCount_ > 0 || (first_ == 0 && last_ == 0) );
+	_makeIdTaken( id, idp );
+
+	Q_ASSERT(
+		(freeCount_ == 0 && first_ == 0 && last_ == 0) ||
+		(freeCount_ != 0 && first_ != 0 && last_ != 0) );
+}
+
+
+/** \internal
+ */
+
+inline bool IdGeneratorPrivate::isFree( int id ) const
+{
+	Q_ASSERT( id > 0 );
+	Q_ASSERT( limit_ == -1 || id <= limit_ );
+
+	if ( id >= ids_.size() )
+		return true;
+
+	return ids_.at( id ).isFree;
 }
 
 
@@ -296,6 +339,7 @@ inline void IdGeneratorPrivate::reserve( int id )
  * IdGenerator class always returns a unique identifier from the given range for a constant time O(1).
  *
  * For example you have some items in hash and want to reference them by unique numbers:
+ *
  * \code
  * QHash<int,Item> items;
  * IdGenerator generator;
@@ -307,7 +351,9 @@ inline void IdGeneratorPrivate::reserve( int id )
  *     return id;
  * }
  * \endcode
+ *
  * Later when this item removed from the hash:
+ *
  * \code
  * void removeItem( int id )
  * {
@@ -317,18 +363,36 @@ inline void IdGeneratorPrivate::reserve( int id )
  * \endcode
  */
 
+
 /**
- * Constructs a generator instance with the given initial \a size of identifiers to handle.
- * If no size was given default size will be used, which is infinite because auto enlargement is on.
- * You can reinitialize generator later with reset() call.
- * \a size value only make sense together with the autoEnlarge parameter.
- *
- * \sa reset(), setAutoEnlarge()
+ * Constructs generator instance with the maximum identifiers to take to be the given \a limit.
+ * Passing \c -1 as \a limit value constructs generator with unlimited number identifiers to take.
  */
 
-IdGenerator::IdGenerator( int size ) :
-	d_( new IdGeneratorPrivate( size ) )
+IdGenerator::IdGenerator( int limit ) :
+	d_( new IdGeneratorPrivate( limit ) )
 {
+}
+
+
+/**
+ * Constructs generator instance from the given copy \a generator.
+ */
+
+IdGenerator::IdGenerator( const IdGenerator & generator ) :
+	d_( generator.d_ )
+{
+}
+
+
+/**
+ * Assigns this generator to the given \a generator, creating exact copy from it.
+ */
+
+IdGenerator & IdGenerator::operator=( const IdGenerator & generator )
+{
+	d_ = generator.d_;
+	return *this;
 }
 
 
@@ -338,15 +402,25 @@ IdGenerator::IdGenerator( int size ) :
 
 IdGenerator::~IdGenerator()
 {
-	delete d_;
+}
+
+
+/**
+ * Returns maximum number of ids that can be taken.
+ * Returns \c -1 if ids count unlimited.
+ */
+
+int IdGenerator::limit() const
+{
+	return d_->limit_;
 }
 
 
 /**
  * Returns a unique identifier and marks it as used so it will never be returned again unless been freed with free().
- * Returns \c 0 if isAutoEnlarge() is off and more free identifiers left.
+ * Returns \c 0 if no ids limit was reached.
  *
- * \sa free()
+ * \sa free(), reserve(), limit()
  */
 
 int IdGenerator::take()
@@ -372,8 +446,9 @@ void IdGenerator::free( int id )
  * Marks identifier with concrete \a id as used so it will never be returned again unless freed with free().
  * Use this method instead of take() if you know that \a id is currently unused.
  * For example when you saved unique identifiers earlier and want to reuse them in clean generator.
+ * Reserving already taken id or id out of limit range is prohibited.
  *
- * \sa take(), free()
+ * \sa take(), free(), limit()
  */
 
 void IdGenerator::reserve( int id )
@@ -383,25 +458,23 @@ void IdGenerator::reserve( int id )
 
 
 /**
- * Reinitializes a generator with the given \a size of ids.
- * Pass -1 to the \a size if you don't want to change current size.
- *
- * \sa size()
+ * Returns \c true whether the given \a id was not taken.
+ * Returns \c false otherwise.
  */
 
-void IdGenerator::reset( int size )
+bool IdGenerator::isFree( int id ) const
 {
-	d_->_init( size );
+	return d_->isFree( id );
 }
 
 
 /**
- * Returns current count of identifiers taken with take() and not freed with free() yet.
+ * Returns current count of identifiers taken with take() or reserve() and not freed with free() yet.
  */
 
 int IdGenerator::count() const
 {
-	return d_->size_ - d_->freeCount_ - 1;
+	return d_->ids_.size() - d_->freeCount_ - 1;
 }
 
 
@@ -411,48 +484,7 @@ int IdGenerator::count() const
 
 bool IdGenerator::isEmpty() const
 {
-	return d_->freeCount_ + 1 == d_->size_;
-}
-
-
-/**
- * Returns maximum allowed number of identifiers.
- * If isAutoEnlarge() is on then size of generator can grow with take() of reserve() calls.
- * Note that identifier \c 0 is always reserved as null, so it cannot be used.
- *
- * \sa count(), reset(), isAutoEnlarge()
- */
-
-int IdGenerator::size() const
-{
-	return d_->size_;
-}
-
-
-/**
- * Returns flag indicating that this id generator should enlarge size() when identifier
- * count exceed limit. If this flag if on then actually id generator will hold unlimited number
- * of identifiers.
- * Auto enlarging is enabled by default.
- *
- * \sa setAutoEnlarge()
- */
-
-bool IdGenerator::isAutoEnlarge() const
-{
-	return d_->isAutoEnlarge_;
-}
-
-
-/**
- * Set auto enlargement flag to \a set.
- *
- * \sa isAutoEnlarge()
- */
-
-void IdGenerator::setAutoEnlarge( bool set )
-{
-	d_->isAutoEnlarge_ = set;
+	return d_->freeCount_ + 1 == d_->ids_.size();
 }
 
 
@@ -462,7 +494,7 @@ class IdGeneratorIteratorPrivate
 {
 public:
 	inline IdGeneratorIteratorPrivate( const IdGeneratorPrivate * idGeneratorPrivate ) :
-		idGeneratorPrivate_( idGeneratorPrivate ), currentId_( idGeneratorPrivate->first_ )
+		idGeneratorPrivate_( idGeneratorPrivate ), currentId_( idGeneratorPrivate->firstTaken_ )
 	{}
 
 private:
@@ -477,6 +509,8 @@ private:
 
 /**
  * \class IdGeneratorIterator
+ *
+ * \ingroup tools_module
  *
  * \brief The IdGeneratorIterator class iterator over identifiers of IdGenerator.
  *

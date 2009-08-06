@@ -58,7 +58,6 @@ public:
 	bool open( QIODevice::OpenMode openMode );
 
 	bool isSequential() const;
-	bool atEnd() const;
 	qint64 bytesAvailable() const;
 	qint64 size() const;
 

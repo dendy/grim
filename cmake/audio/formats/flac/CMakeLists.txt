@@ -60,8 +60,8 @@ if ( UNIX )
 	set_target_properties( GrimAudioPluginFlac PROPERTIES COMPILE_FLAGS "-fPIC" )
 endif ( UNIX )
 
-#grim_add_precompiled_headers( GrimAudioPluginFlac
-#	"${GRIM_ROOT_DIR}/src/audio/precompiledheaders.h" ${grim_audio_plugin_flac_ALL_SOURCES} )
+grim_add_precompiled_headers( GrimAudioPluginFlac
+	"${GRIM_ROOT_DIR}/src/audio/precompiledheaders.h" ${grim_audio_plugin_flac_ALL_SOURCES} )
 
 
 grim_audio_add_format_plugin(

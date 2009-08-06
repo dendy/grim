@@ -26,8 +26,7 @@
 
 #include "toolsglobal.h"
 
-#include <QVector>
-#include <QMutex>
+#include <QSharedDataPointer>
 
 
 
@@ -46,25 +45,23 @@ class IdGeneratorIteratorPrivate;
 class GRIM_TOOLS_EXPORT IdGenerator
 {
 public:
-	IdGenerator( int size = -1 );
+	IdGenerator( int limit = -1 );
+	IdGenerator( const IdGenerator & generator );
+	IdGenerator & operator=( const IdGenerator & generator );
 	~IdGenerator();
+
+	int limit() const;
 
 	int take();
 	void free( int id );
 	void reserve( int id );
+	bool isFree( int id ) const;
 
-	void reset( int size = -1 );
-
-	int count() const;
 	bool isEmpty() const;
-
-	int size() const;
-
-	bool isAutoEnlarge() const;
-	void setAutoEnlarge( bool set );
+	int count() const;
 
 private:
-	IdGeneratorPrivate * d_;
+	QSharedDataPointer<IdGeneratorPrivate> d_;
 
 	friend class IdGeneratorIterator;
 };

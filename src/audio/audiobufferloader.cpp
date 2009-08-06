@@ -72,7 +72,7 @@ void AudioBufferLoader::abort()
 	requestForId_.clear();
 	requests_.clear();
 	prioritizedRequests_.clear();
-	idGenerator_.reset();
+	idGenerator_ = IdGenerator();
 }
 
 

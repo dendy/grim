@@ -33,9 +33,15 @@ set( BUILD_SHARED_LIBS 1 )
 set( CMAKE_STATIC_LIBRARY_PREFIX "lib" )
 set( CMAKE_SHARED_LIBRARY_PREFIX "lib" )
 
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin" )
-set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib" )
-set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib" )
+if ( NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY )
+	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin" )
+endif ( NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY )
+if ( NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY )
+	set( CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib" )
+endif ( NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY )
+if ( NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY )
+	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib" )
+endif ( NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY )
 
 
 # global options
@@ -198,7 +204,7 @@ set( grim_translation_targets )
 set( grim_qm_files )
 foreach ( _language_name ${_grim_translations} )
 	set( _grim_ts_file "${GRIM_ROOT_DIR}/translations/grim_${_language_name}.ts" )
-	grim_create_translation( _qm_file grim_translation_targets ${_grim_ts_file} ${grim_ALL_SOURCES} OPTIONS -silent )
+	grim_create_translation( _qm_file "" grim_translation_targets ${_grim_ts_file} ${grim_ALL_SOURCES} OPTIONS -silent )
 	list( APPEND grim_qm_files ${_qm_file} )
 endforeach ( _language_name ${_grim_translations} )
 

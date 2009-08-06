@@ -43,8 +43,8 @@ if ( UNIX )
 	set_target_properties( GrimAudioPluginWave PROPERTIES COMPILE_FLAGS "-fPIC" )
 endif ( UNIX )
 
-#grim_add_precompiled_headers( GrimAudioWaveFormatPlugin
-#	"${GRIM_ROOT_DIR}/src/audio/precompiledheaders.h" ${grim_audio_plugin_wave_ALL_SOURCES} )
+grim_add_precompiled_headers( GrimAudioPluginWave
+	"${GRIM_ROOT_DIR}/src/audio/precompiledheaders.h" ${grim_audio_plugin_wave_ALL_SOURCES} )
 
 
 grim_audio_add_format_plugin(

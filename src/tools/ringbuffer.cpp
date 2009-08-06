@@ -273,6 +273,8 @@ void RingBufferPrivate::clear()
 /**
  * \class RingBuffer
  *
+ * \ingroup tools_module
+ *
  * \brief The RingBuffer class represents FIFO buffer with QIODevice interface.
  *
  * Ring buffer is handy, when you have sequential FIFO stream and should collect
@@ -443,15 +445,6 @@ bool RingBuffer::open( QIODevice::OpenMode openMode )
 bool RingBuffer::isSequential() const
 {
 	return false;
-}
-
-
-/** \internal
- */
-
-bool RingBuffer::atEnd() const
-{
-	return d_->pos_ == d_->size_;
 }
 
 

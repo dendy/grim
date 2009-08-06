@@ -108,8 +108,8 @@ if ( _demo_translations )
 		set( _info_ts_file "${DEMO_ROOT_DIR}/translations/info_${_language_name}.ts" )
 		set( _demo_ts_file "${DEMO_ROOT_DIR}/translations/demo_${_language_name}.ts" )
 	
-		grim_create_translation( _info_qm_file demo_translation_targets ${_info_ts_file} ${_info_ts_sources} OPTIONS -silent )
-		grim_create_translation( _demo_qm_file demo_translation_targets ${_demo_ts_file} ${_demo_ts_sources} OPTIONS -silent )
+		grim_create_translation( _info_qm_file "" demo_translation_targets ${_info_ts_file} ${_info_ts_sources} OPTIONS -silent )
+		grim_create_translation( _demo_qm_file "" demo_translation_targets ${_demo_ts_file} ${_demo_ts_sources} OPTIONS -silent )
 	
 		list( APPEND demo_QM_FILES ${_info_qm_file} )
 		list( APPEND demo_QM_FILES ${_demo_qm_file} )

@@ -28,6 +28,7 @@ set( SRC "${GRIM_ROOT_DIR}/src/tools" )
 
 # archive sources
 set( grim_tools_HEADERS
+	${SRC}/datastreamreader.h
 #	${SRC}/displaymodeswitcher.h
 	${SRC}/fpscounter.h
 	${SRC}/idgenerator.h
@@ -37,6 +38,7 @@ set( grim_tools_HEADERS
 )
 
 set( grim_tools_SOURCES
+	${SRC}/datastreamreader.cpp
 #	${SRC}/displaymodeswitcher.cpp
 	${SRC}/fpscounter.cpp
 	${SRC}/idgenerator.cpp

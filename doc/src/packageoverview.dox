@@ -8,7 +8,7 @@
  *                       Particular module project files are inside subdirectories.
  * \li \b demo         - Demonstration application of main capabilities.
  * \li \b doc          - Documentation.
- * \li \b examples     - Small examples how to use various futures of Grim.
+ * \li \b examples     - Small examples how to use various features of Grim.
  *                       Recommended for new developers.
  * \li \b include      - Headers for Grim library. Useful when one wants to skip
  *                       install step and use Grim directly from package.
